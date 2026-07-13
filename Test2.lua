@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
-repeat task.wait() until LocalPlayer and LocalPlayer:FindFirstChild("PlayerGui")
+repeat task.wait() until LocalPlayer and LocalPlayer:FindFirstChild("Character") and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 local Camera = Workspace.CurrentCamera
 
 for _, v in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
@@ -17,36 +17,20 @@ local aimbotPart = "Head"
 local aimbotWall = false
 local aimbotDist = 500
 local aimbotFov = 150
-
 local assistOn = false
 local assistMode = "ENEMIES"
 local assistPart = "Head"
 local assistDist = 500
 local assistFov = 150
-
 local espOn = false
 local espMode = "ENEMIES"
-
 local antiKick = false
 local antiFling = false
 local antiDetect = false
 
-local bgImageId = "rbxassetid://7483871523"
-
 local gui = Instance.new("ScreenGui")
 gui.Name = "BHub"
 gui.Parent = LocalPlayer.PlayerGui
-
-local bgImage = Instance.new("ImageLabel")
-bgImage.Name = "BG"
-bgImage.Size = UDim2.new(0, 500, 0, 300)
-bgImage.Position = UDim2.new(0.5, -250, 0.5, -150)
-bgImage.BackgroundTransparency = 1
-bgImage.Image = bgImageId
-bgImage.ImageTransparency = 0.85
-bgImage.ScaleType = Enum.ScaleType.Crop
-bgImage.Visible = false
-bgImage.Parent = gui
 
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 500, 0, 300)
@@ -84,33 +68,7 @@ hideBtn.TextColor3 = Color3.fromRGB(255, 150, 50)
 hideBtn.Font = Enum.Font.SourceSansBold
 hideBtn.TextSize = 22
 hideBtn.Parent = titleBar
-hideBtn.MouseButton1Click:Connect(function()
-    main.Visible = false
-    bgImage.Visible = false
-end)
-
-local dragMain = false
-local mainStart = Vector2.zero
-local mainPosX = 0
-local mainPosY = 0
-titleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragMain = true
-        mainStart = input.Position
-        mainPosX = main.Position.X.Offset
-        mainPosY = main.Position.Y.Offset
-    end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if dragMain and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - mainStart
-        main.Position = UDim2.new(0, mainPosX + delta.X, 0, mainPosY + delta.Y)
-        bgImage.Position = main.Position
-    end
-end)
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragMain = false end
-end)
+hideBtn.MouseButton1Click:Connect(function() main.Visible = false end)
 
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0, 45, 0, 45)
@@ -123,32 +81,7 @@ toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.TextSize = 22
 toggleBtn.ZIndex = 10
 toggleBtn.Parent = gui
-toggleBtn.MouseButton1Click:Connect(function()
-    main.Visible = not main.Visible
-    bgImage.Visible = main.Visible
-end)
-
-local dragBtn = false
-local btnStart = Vector2.zero
-local btnPosX = 0
-local btnPosY = 0
-toggleBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragBtn = true
-        btnStart = input.Position
-        btnPosX = toggleBtn.Position.X.Offset
-        btnPosY = toggleBtn.Position.Y.Offset
-    end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if dragBtn and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - btnStart
-        toggleBtn.Position = UDim2.new(0, btnPosX + delta.X, 0, btnPosY + delta.Y)
-    end
-end)
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragBtn = false end
-end)
+toggleBtn.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)
 
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 130, 1, -35)
@@ -183,7 +116,6 @@ local aimbotTab = createTab("Aimbot")
 local assistTab = createTab("Assist")
 local espTab = createTab("ESP")
 local protTab = createTab("Protect")
-local bgTab = createTab("Background")
 aimbotTab.Visible = true
 
 local function addTabBtn(name, text, pos)
@@ -210,7 +142,6 @@ addTabBtn("Aimbot", "AIMBOT", 1)
 addTabBtn("Assist", "ASSIST", 2)
 addTabBtn("ESP", "ESP", 3)
 addTabBtn("Protect", "PROTECT", 4)
-addTabBtn("Background", "STYLE", 5)
 
 local function addToggle(parent, text, state, y, cb)
     local btn = Instance.new("TextButton")
@@ -249,68 +180,14 @@ local function addMode(parent, text, current, options, y, cb)
     end)
 end
 
-local function addSlider(parent, text, min, max, default, y, cb)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 220, 0, 45)
-    frame.Position = UDim2.new(0, 15, 0, y)
-    frame.BackgroundColor3 = Color3.fromRGB(45, 50, 65)
-    frame.BorderSizePixel = 0
-    frame.Parent = parent
+addToggle(aimbotTab, "Aimbot", false, 10, function(v) aimbotOn = v end)
+addMode(aimbotTab, "Target", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 50, function(v) aimbotMode = v end)
+addMode(aimbotTab, "Hit Part", "Head", {"Head", "Body"}, 90, function(v) aimbotPart = v end)
+addToggle(aimbotTab, "Wall Check", false, 130, function(v) aimbotWall = v end)
 
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, 0, 0, 16)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text .. ": " .. default
-    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    lbl.Font = Enum.Font.SourceSansBold
-    lbl.TextSize = 10
-    lbl.Parent = frame
-
-    local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(0, 200, 0, 5)
-    bg.Position = UDim2.new(0, 10, 0, 25)
-    bg.BackgroundColor3 = Color3.fromRGB(30, 35, 50)
-    bg.BorderSizePixel = 0
-    bg.Parent = frame
-
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    fill.BackgroundColor3 = Color3.fromRGB(255, 120, 40)
-    fill.BorderSizePixel = 0
-    fill.Parent = bg
-
-    local drag = false
-    local function update(input)
-        local pos = math.clamp((input.Position.X - bg.AbsolutePosition.X) / bg.AbsoluteSize.X, 0, 1)
-        fill.Size = UDim2.new(pos, 0, 1, 0)
-        local val = math.floor(min + (max - min) * pos)
-        lbl.Text = text .. ": " .. val
-        if cb then cb(val) end
-    end
-    bg.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then drag = true update(input) end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if drag and input.UserInputType == Enum.UserInputType.MouseMovement then update(input) end
-    end)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then drag = false end
-    end)
-end
-
--- ЗАПОЛНЕНИЕ ВКЛАДОК
-addToggle(aimbotTab, "Aimbot", false, 5, function(v) aimbotOn = v end)
-addMode(aimbotTab, "Target", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 40, function(v) aimbotMode = v end)
-addMode(aimbotTab, "Hit Part", "Head", {"Head", "Body"}, 75, function(v) aimbotPart = v end)
-addToggle(aimbotTab, "Wall Check", false, 110, function(v) aimbotWall = v end)
-addSlider(aimbotTab, "Distance", 50, 1000, 500, 150, function(v) aimbotDist = v end)
-addSlider(aimbotTab, "FOV", 30, 500, 150, 200, function(v) aimbotFov = v end)
-
-addToggle(assistTab, "Aim Assist", false, 5, function(v) assistOn = v end)
-addMode(assistTab, "Target", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 40, function(v) assistMode = v end)
-addMode(assistTab, "Hit Part", "Head", {"Head", "Body"}, 75, function(v) assistPart = v end)
-addSlider(assistTab, "Distance", 50, 1000, 500, 115, function(v) assistDist = v end)
-addSlider(assistTab, "FOV", 30, 500, 150, 165, function(v) assistFov = v end)
+addToggle(assistTab, "Aim Assist", false, 10, function(v) assistOn = v end)
+addMode(assistTab, "Target", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 50, function(v) assistMode = v end)
+addMode(assistTab, "Hit Part", "Head", {"Head", "Body"}, 90, function(v) assistPart = v end)
 
 addToggle(espTab, "ESP", false, 10, function(v) espOn = v end)
 addMode(espTab, "ESP Mode", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 50, function(v) espMode = v end)
@@ -319,65 +196,9 @@ addToggle(protTab, "Anti Kick", false, 10, function(v) antiKick = v end)
 addToggle(protTab, "Anti Fling", false, 50, function(v) antiFling = v end)
 addToggle(protTab, "Anti Detect", false, 90, function(v) antiDetect = v end)
 
-local bgLabel = Instance.new("TextLabel")
-bgLabel.Size = UDim2.new(0, 200, 0, 30)
-bgLabel.Position = UDim2.new(0, 10, 0, 10)
-bgLabel.BackgroundTransparency = 1
-bgLabel.Text = "Choose Background"
-bgLabel.TextColor3 = Color3.fromRGB(255, 150, 50)
-bgLabel.Font = Enum.Font.SourceSansBold
-bgLabel.TextSize = 14
-bgLabel.Parent = bgTab
-
-local bgInput = Instance.new("TextBox")
-bgInput.Size = UDim2.new(0, 200, 0, 35)
-bgInput.Position = UDim2.new(0, 10, 0, 50)
-bgInput.BackgroundColor3 = Color3.fromRGB(50, 55, 75)
-bgInput.Text = ""
-bgInput.PlaceholderText = "Image ID (numbers)"
-bgInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-bgInput.Font = Enum.Font.SourceSansBold
-bgInput.TextSize = 12
-bgInput.Parent = bgTab
-
-local bgApply = Instance.new("TextButton")
-bgApply.Size = UDim2.new(0, 200, 0, 30)
-bgApply.Position = UDim2.new(0, 10, 0, 95)
-bgApply.BackgroundColor3 = Color3.fromRGB(255, 120, 40)
-bgApply.Text = "APPLY"
-bgApply.TextColor3 = Color3.fromRGB(255, 255, 255)
-bgApply.Font = Enum.Font.SourceSansBold
-bgApply.TextSize = 13
-bgApply.Parent = bgTab
-bgApply.MouseButton1Click:Connect(function()
-    local id = bgInput.Text
-    if id ~= "" and tonumber(id) then
-        bgImage.Image = "rbxassetid://" .. id
-    end
-end)
-
-local bgToggle = Instance.new("TextButton")
-bgToggle.Size = UDim2.new(0, 200, 0, 30)
-bgToggle.Position = UDim2.new(0, 10, 0, 135)
-bgToggle.BackgroundColor3 = Color3.fromRGB(50, 55, 75)
-bgToggle.Text = "Background: ON"
-bgToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-bgToggle.Font = Enum.Font.SourceSansBold
-bgToggle.TextSize = 12
-bgToggle.Parent = bgTab
-local bgOn = true
-bgToggle.MouseButton1Click:Connect(function()
-    bgOn = not bgOn
-    bgToggle.Text = "Background: " .. (bgOn and "ON" or "OFF")
-    bgToggle.BackgroundColor3 = bgOn and Color3.fromRGB(255, 120, 40) or Color3.fromRGB(50, 55, 75)
-    bgImage.Visible = bgOn and main.Visible
-end)
-
--- ФУНКЦИИ
 local function getTeam(p)
     if p.Team then return p.Team end
-    if p:FindFirstChild("Team") then return p.Team end
-    return nil
+    return p:FindFirstChild("Team")
 end
 
 local function isValid(p, mode)
@@ -391,7 +212,6 @@ local function isValid(p, mode)
     if mode == "ALL" then return true end
     local mt = getTeam(LocalPlayer)
     local tt = getTeam(p)
-    if not mt or not tt then return mode == "ALL" end
     if mode == "ENEMIES" then return mt ~= tt end
     return mt == tt
 end
@@ -401,7 +221,7 @@ local function w2s(pos)
     return Vector2.new(s.X, s.Y), v
 end
 
-local function getTarget(mode, dist, fov, part, wall)
+local function getTarget(mode, dist, fov, part)
     local mp = UserInputService:GetMouseLocation()
     local best = nil
     local bestDist = fov
@@ -416,13 +236,6 @@ local function getTarget(mode, dist, fov, part, wall)
         if d >= bestDist then continue end
         local mr = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if mr and (mr.Position - pt.Position).Magnitude > dist then continue end
-        if wall and mr then
-            local rayParams = RaycastParams.new()
-            rayParams.FilterType = Enum.RaycastFilterType.Exclude
-            rayParams.FilterDescendantsInstances = {LocalPlayer.Character, c}
-            local rayResult = Workspace:Raycast(mr.Position, (pt.Position - mr.Position).Unit * dist, rayParams)
-            if rayResult then continue end
-        end
         bestDist = d
         best = pt
     end
@@ -431,7 +244,10 @@ end
 
 local espData = {}
 local function clearESP(p)
-    if espData[p] then for _, d in ipairs(espData[p]) do d:Remove() end espData[p] = nil end
+    if espData[p] then
+        for _, d in ipairs(espData[p]) do d:Remove() end
+        espData[p] = nil
+    end
 end
 local function createESP(p)
     clearESP(p)
@@ -443,41 +259,14 @@ local function createESP(p)
     espData[p] = d
 end
 
-local aimbotFovCircle = Drawing.new("Circle")
-aimbotFovCircle.Color = Color3.fromRGB(255, 150, 50)
-aimbotFovCircle.Thickness = 1
-aimbotFovCircle.NumSides = 64
-aimbotFovCircle.Transparency = 0.4
-aimbotFovCircle.Visible = false
-aimbotFovCircle.Filled = false
-
-local assistFovCircle = Drawing.new("Circle")
-assistFovCircle.Color = Color3.fromRGB(50, 150, 255)
-assistFovCircle.Thickness = 1
-assistFovCircle.NumSides = 64
-assistFovCircle.Transparency = 0.4
-assistFovCircle.Visible = false
-assistFovCircle.Filled = false
-
 Players.PlayerRemoving:Connect(function(p) clearESP(p) end)
-Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(function()
-        if espOn then task.wait(0.5) end
-    end)
-end)
 
 RunService.Heartbeat:Connect(function()
-    aimbotFovCircle.Radius = aimbotFov
-    aimbotFovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    aimbotFovCircle.Visible = aimbotOn
-
-    assistFovCircle.Radius = assistFov
-    assistFovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    assistFovCircle.Visible = assistOn
-
     if aimbotOn then
-        local t = getTarget(aimbotMode, aimbotDist, aimbotFov, aimbotPart, aimbotWall)
-        if t then Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, t.Position) end
+        local t = getTarget(aimbotMode, aimbotDist, aimbotFov, aimbotPart)
+        if t then
+            Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, t.Position)
+        end
     end
 
     if assistOn then
@@ -486,11 +275,10 @@ RunService.Heartbeat:Connect(function()
             local h = c:FindFirstChild("HumanoidRootPart")
             local hu = c:FindFirstChildOfClass("Humanoid")
             if h and hu and hu.Health > 0 then
-                local t = getTarget(assistMode, assistDist, assistFov, assistPart, false)
+                local t = getTarget(assistMode, assistDist, assistFov, assistPart)
                 if t then
                     local dir = (t.Position - h.Position).Unit
                     h.Velocity = dir * 50
-                    h.CFrame = CFrame.lookAt(h.Position, h.Position + dir)
                 end
             end
         end
@@ -503,13 +291,6 @@ RunService.Heartbeat:Connect(function()
                 local hu = c:FindFirstChildOfClass("Humanoid")
                 if hu then
                     hu:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-                    hu:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-                end
-                for _, v in ipairs(c:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        v.CanCollide = true
-                        v.CustomPhysicalProperties = PhysicalProperties.new(100, 1, 1, 1, 1)
-                    end
                 end
             end
         end)
@@ -523,14 +304,6 @@ RunService.Heartbeat:Connect(function()
                 if h then
                     h.Velocity = Vector3.zero
                     h.RotVelocity = Vector3.zero
-                    h.AssemblyLinearVelocity = Vector3.zero
-                    h.AssemblyAngularVelocity = Vector3.zero
-                end
-                for _, v in ipairs(c:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        v.Velocity = Vector3.zero
-                        v.RotVelocity = Vector3.zero
-                    end
                 end
             end
         end)
@@ -538,14 +311,69 @@ RunService.Heartbeat:Connect(function()
 
     if antiDetect then
         pcall(function()
-            -- Отключение античит-скриптов
             for _, v in ipairs(Workspace:GetDescendants()) do
-                if v:IsA("Script") or v:IsA("LocalScript") or v:IsA("ModuleScript") then
+                if v:IsA("Script") or v:IsA("LocalScript") then
                     local n = v.Name:lower()
-                    if n:find("anti") or n:find("detect") or n:find("check") or n:find("ban") or n:find("kick") or n:find("ac") or n:find("guard") then
+                    if n:find("anti") or n:find("detect") or n:find("check") then
                         v.Enabled = false
                     end
                 end
-                if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-                    local n = v.Name:lower()
-                    if n:find("anti") or n:f
+            end
+        end)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if not espOn then
+        for p, _ in pairs(espData) do clearESP(p) end
+        return
+    end
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if not isValid(p, espMode) and espMode ~= "ALL" then
+            clearESP(p)
+            continue
+        end
+        local c = p.Character
+        local h = c and c:FindFirstChild("HumanoidRootPart")
+        local hd = c and c:FindFirstChild("Head")
+        local hu = c and c:FindFirstChildOfClass("Humanoid")
+        if not h or not hd or not hu or hu.Health <= 0 then
+            clearESP(p)
+            continue
+        end
+        if not espData[p] then createESP(p) end
+        local d = espData[p]
+        if not d then continue end
+
+        local mt = getTeam(LocalPlayer)
+        local tt = getTeam(p)
+        local enemy = mt ~= tt
+        local clr = espMode == "ALL" and (enemy and Color3.fromRGB(255, 60, 60) or Color3.fromRGB(50, 200, 100)) or (espMode == "ENEMIES" and Color3.fromRGB(255, 60, 60) or Color3.fromRGB(50, 120, 255))
+
+        local hp, hv = w2s(hd.Position)
+        local rp, rv = w2s(h.Position)
+        if hv or rv then
+            local s = (hp - rp).Magnitude
+            d[1].Color = clr
+            d[1].Size = Vector2.new(s*0.6, s)
+            d[1].Position = Vector2.new(rp.X - s*0.3, hp.Y)
+            d[1].Visible = true
+            d[2].From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
+            d[2].To = rp
+            d[2].Color = clr
+            d[2].Visible = true
+            local dist = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and math.floor((LocalPlayer.Character.HumanoidRootPart.Position - h.Position).Magnitude) or 0
+            d[3].Text = dist.."m"
+            d[3].Position = Vector2.new(rp.X, rp.Y+15)
+            d[3].Color = clr
+            d[3].Visible = true
+            d[4].Text = p.Name
+            d[4].Position = Vector2.new(rp.X, rp.Y-15)
+            d[4].Color = clr
+            d[4].Visible = true
+        else
+            for _, v in ipairs(d) do v.Visible = false end
+        end
+    end
+end)
