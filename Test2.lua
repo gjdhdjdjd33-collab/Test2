@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
-repeat task.wait() until LocalPlayer and LocalPlayer:FindFirstChild("Character") and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+repeat task.wait() until LocalPlayer and LocalPlayer:FindFirstChild("Character")
 local Camera = Workspace.CurrentCamera
 
 for _, v in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
@@ -14,14 +14,9 @@ end
 local aimbotOn = false
 local aimbotMode = "ENEMIES"
 local aimbotPart = "Head"
-local aimbotWall = false
-local aimbotDist = 500
-local aimbotFov = 150
 local assistOn = false
 local assistMode = "ENEMIES"
 local assistPart = "Head"
-local assistDist = 500
-local assistFov = 150
 local espOn = false
 local espMode = "ENEMIES"
 local antiKick = false
@@ -36,7 +31,6 @@ local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 500, 0, 300)
 main.Position = UDim2.new(0.5, -250, 0.5, -150)
 main.BackgroundColor3 = Color3.fromRGB(25, 30, 50)
-main.BackgroundTransparency = 0.15
 main.BorderSizePixel = 0
 main.Visible = false
 main.Parent = gui
@@ -44,7 +38,6 @@ main.Parent = gui
 local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1, 0, 0, 35)
 titleBar.BackgroundColor3 = Color3.fromRGB(20, 25, 40)
-titleBar.BackgroundTransparency = 0.3
 titleBar.BorderSizePixel = 0
 titleBar.Parent = main
 
@@ -87,7 +80,6 @@ local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 130, 1, -35)
 sidebar.Position = UDim2.new(0, 0, 0, 35)
 sidebar.BackgroundColor3 = Color3.fromRGB(20, 25, 40)
-sidebar.BackgroundTransparency = 0.3
 sidebar.BorderSizePixel = 0
 sidebar.Parent = main
 
@@ -95,7 +87,6 @@ local container = Instance.new("Frame")
 container.Size = UDim2.new(1, -140, 1, -45)
 container.Position = UDim2.new(0, 135, 0, 40)
 container.BackgroundColor3 = Color3.fromRGB(30, 35, 55)
-container.BackgroundTransparency = 0.2
 container.BorderSizePixel = 0
 container.Parent = main
 
@@ -183,7 +174,6 @@ end
 addToggle(aimbotTab, "Aimbot", false, 10, function(v) aimbotOn = v end)
 addMode(aimbotTab, "Target", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 50, function(v) aimbotMode = v end)
 addMode(aimbotTab, "Hit Part", "Head", {"Head", "Body"}, 90, function(v) aimbotPart = v end)
-addToggle(aimbotTab, "Wall Check", false, 130, function(v) aimbotWall = v end)
 
 addToggle(assistTab, "Aim Assist", false, 10, function(v) assistOn = v end)
 addMode(assistTab, "Target", "ENEMIES", {"ENEMIES", "ALL", "TEAM"}, 50, function(v) assistMode = v end)
@@ -263,7 +253,7 @@ Players.PlayerRemoving:Connect(function(p) clearESP(p) end)
 
 RunService.Heartbeat:Connect(function()
     if aimbotOn then
-        local t = getTarget(aimbotMode, aimbotDist, aimbotFov, aimbotPart)
+        local t = getTarget(aimbotMode, 500, 150, aimbotPart)
         if t then
             Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, t.Position)
         end
@@ -275,7 +265,7 @@ RunService.Heartbeat:Connect(function()
             local h = c:FindFirstChild("HumanoidRootPart")
             local hu = c:FindFirstChildOfClass("Humanoid")
             if h and hu and hu.Health > 0 then
-                local t = getTarget(assistMode, assistDist, assistFov, assistPart)
+                local t = getTarget(assistMode, 500, 150, assistPart)
                 if t then
                     local dir = (t.Position - h.Position).Unit
                     h.Velocity = dir * 50
@@ -314,7 +304,7 @@ RunService.Heartbeat:Connect(function()
             for _, v in ipairs(Workspace:GetDescendants()) do
                 if v:IsA("Script") or v:IsA("LocalScript") then
                     local n = v.Name:lower()
-                    if n:find("anti") or n:find("detect") or n:find("check") then
+                    if n:find("anti") or n:find("detect") then
                         v.Enabled = false
                     end
                 end
@@ -349,7 +339,7 @@ RunService.RenderStepped:Connect(function()
         local mt = getTeam(LocalPlayer)
         local tt = getTeam(p)
         local enemy = mt ~= tt
-        local clr = espMode == "ALL" and (enemy and Color3.fromRGB(255, 60, 60) or Color3.fromRGB(50, 200, 100)) or (espMode == "ENEMIES" and Color3.fromRGB(255, 60, 60) or Color3.fromRGB(50, 120, 255))
+        local clr = espMode == "ALL" and (enemy and Color3.fromRGB(255, 60, 60) or Color3.fromRGB(50, 200, 100)) or Color3.fromRGB(255, 60, 60)
 
         local hp, hv = w2s(hd.Position)
         local rp, rv = w2s(h.Position)
